@@ -150,4 +150,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: ${{ github.actor }} добавил коммит "${{ github.event.head_commit.message }}". Вы можете ознакомиться по ссылке ${{ github.event.head_commit.url }}.
+        message: Деплой Foodgram успешно выполнен!
