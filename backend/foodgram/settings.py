@@ -137,7 +137,6 @@ DJOSER = {
 AUTH_USER_MODEL = 'users.User'
 
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
