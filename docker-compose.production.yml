@@ -19,7 +19,7 @@ services:
       - db
     volumes:
       - static:/static
-      - media:/app/media/
+      - media:app/media
 
   frontend:
     image: artemon1981/foodgram_frontend
@@ -40,4 +40,4 @@ services:
       - 8000:80
     volumes:
       - static:/static/
-      - media:/var/html/media/
+      - media:/media
