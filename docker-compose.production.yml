@@ -19,7 +19,7 @@ services:
       - db
     volumes:
       - static:/static
-      - media:/app/media
+      - media:app/media/
 
   frontend:
     image: artemon1981/foodgram_frontend
@@ -28,7 +28,7 @@ services:
       - backend
     command: cp -r /app/build/. /static/
     volumes:
-      - static:/static
+      - static:/static/
 
   gateway:
     image: artemon1981/foodgram_gateway
@@ -39,5 +39,5 @@ services:
     ports:
       - 8000:80
     volumes:
-      - static:/static
-      - media:/app/media/
+      - static:/static/
+      - media:/var/html/media/

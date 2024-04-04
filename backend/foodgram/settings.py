@@ -14,7 +14,6 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
 
-CSRF_TRUSTED_ORIGINS = ['django-training.ru']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -110,7 +109,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "collected_static"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -138,8 +138,6 @@ AUTH_USER_MODEL = 'users.User'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Constants for project
 
