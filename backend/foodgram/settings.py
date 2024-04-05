@@ -10,7 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = True
+# DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
 
@@ -134,6 +135,8 @@ DJOSER = {
 }
 
 AUTH_USER_MODEL = 'users.User'
+
+PAGE_SIZE =6
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
