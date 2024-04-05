@@ -1,6 +1,5 @@
 import base64
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db.models import F
@@ -9,8 +8,10 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from api.validators import validate_username
+from recipes.constants import RecipeField
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
+from users.constants import FieldConstants
 from users.models import Subscription
 
 User = get_user_model()
@@ -100,11 +101,6 @@ class SubscriptionSerializer(UsersSerializer):
             if user == following:
                 raise serializers.ValidationError(
                     'Вы не можете подписаться на самого себя!')
-        if self.context.get('request').method == 'DELETE':
-            if not subscription.exists():
-                raise serializers.ValidationError(
-                    'Нельзя отменить несуществующую подписку!'
-                )
         return data
 
     def get_recipes_count(self, obj):
@@ -123,8 +119,9 @@ class SubscriptionSerializer(UsersSerializer):
 class UserRegistrationSerializer(UserCreateSerializer):
     """Сериализатор регистрации пользователей."""
 
-    username = serializers.CharField(max_length=settings.MAX_FIELD_LENGTH,
-                                     validators=[validate_username])
+    username = serializers.CharField(
+        max_length=FieldConstants.USER_NAME_LENGTH,
+        validators=[validate_username])
 
     class Meta:
         model = User
@@ -143,9 +140,15 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount',)
 
     def validate_amount(self, amount_value):
-        if amount_value < settings.MIN_NUM_INGR:
+        if amount_value < RecipeField.RECIPE_INGREDIENT_MIN:
             raise serializers.ValidationError(
-                'Количество ингредиентов не может быть меньше 1!'
+                f"""Количество ингредиентов не может быть меньше
+                 {RecipeField.RECIPE_INGREDIENT_MIN}!"""
+            )
+        if amount_value > RecipeField.RECIPE_INGREDIENT_MAX:
+            raise serializers.ValidationError(
+                f"""Количество ингредиентов не может быть больше
+                 {RecipeField.RECIPE_INGREDIENT_MAX}!"""
             )
         return amount_value
 

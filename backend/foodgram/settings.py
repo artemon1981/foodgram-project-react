@@ -15,7 +15,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
 
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,6 +29,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
     'users.apps.UsersConfig',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
@@ -136,16 +136,6 @@ DJOSER = {
 
 AUTH_USER_MODEL = 'users.User'
 
-PAGE_SIZE =6
-
+PAGE_SIZE = 6
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Constants for project
-
-MAX_FIELD_LENGTH = 150
-MAX_LENGTH_NAME = 200
-MAX_EMAIL_LENGTH = 254
-MAX_COLOR_LENGTH = 7
-MIN_COOK_TIME = 1
-MIN_NUM_INGR = 1

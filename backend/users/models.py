@@ -1,6 +1,7 @@
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from .constants import FieldConstants
 
 
 class User(AbstractUser):
@@ -11,20 +12,20 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         unique=True,
-        max_length=settings.MAX_EMAIL_LENGTH,
+        max_length=FieldConstants.USER_EMAIL_LENGTH,
     )
     username = models.CharField(
         verbose_name='Имя пользователя',
         unique=True,
-        max_length=settings.MAX_FIELD_LENGTH,
+        max_length=FieldConstants.USER_NAME_LENGTH,
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=settings.MAX_FIELD_LENGTH,
+        max_length=FieldConstants.USER_NAME_LENGTH,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=settings.MAX_FIELD_LENGTH,
+        max_length=FieldConstants.USER_NAME_LENGTH,
     )
 
     class Meta:

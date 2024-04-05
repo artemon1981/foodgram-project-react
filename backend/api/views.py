@@ -61,22 +61,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(methods=('POST', 'DELETE'), detail=True)
+    @action(methods=('POST',), detail=True)
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            return self.perform_action(FavoriteSerializer, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_recipe(Favorite, request.user, pk)
-        return None
+        return self.perform_action(FavoriteSerializer, request.user, pk)
 
-    @action(methods=('POST', 'DELETE'), detail=True)
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk=None):
+        return self.delete_recipe(Favorite, request.user, pk)
+
+    @action(methods=('POST',), detail=True)
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.perform_action(
-                ShoppingCartSerializer, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_recipe(ShoppingCart, request.user, pk)
-        return None
+        return self.perform_action(ShoppingCartSerializer, request.user, pk)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk=None):
+        return self.delete_recipe(ShoppingCart, request.user, pk)
 
     @action(detail=False, methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
@@ -141,40 +140,36 @@ class UserViewSet(UserViewSet):
                                        IsAuthorOrReadOnly,)
         return super().get_permissions()
 
-    @action(
-        detail=True,
-        methods=('post', 'delete',),
-        permission_classes=(permissions.IsAuthenticated,)
-    )
+    @action(detail=True, methods=('post',),
+            permission_classes=(permissions.IsAuthenticated,))
     def subscribe(self, request, **kwargs):
+        return self.handle_subscription(request, create=True)
+
+    @subscribe.mapping.delete
+    def delete_subscribe(self, request, **kwargs):
+        return self.handle_subscription(request, create=False)
+
+    def handle_subscription(self, request, create=True):
         user = self.request.user
-        following_id = self.kwargs.get('id')
-        following = get_object_or_404(User, id=following_id)
+        following = get_object_or_404(User,
+                                      id=self.kwargs.get('id'))
         serializer = SubscriptionSerializer(following,
                                             data=request.data,
                                             context={'request': request})
         serializer.is_valid(raise_exception=True)
 
-        if request.method == 'POST':
+        if create:
             Subscription.objects.create(user=user, following=following)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        subscription = Subscription.objects.filter(user=user,
+                                                   following=following)
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if request.method == 'DELETE':
-            subscription = Subscription.objects.filter(
-                user=user, following=following
-            )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(
-        detail=False,
-        permission_classes=(permissions.IsAuthenticated,)
-    )
+    @action(detail=False, permission_classes=(permissions.IsAuthenticated,))
     def subscriptions(self, request):
-        user = request.user
-        queryset = User.objects.filter(following__user=user)
+        queryset = User.objects.filter(following__user=request.user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscriptionSerializer(pages,
-                                            many=True,
+        serializer = SubscriptionSerializer(pages, many=True,
                                             context={'request': request})
         return self.get_paginated_response(serializer.data)

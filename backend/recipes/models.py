@@ -1,8 +1,29 @@
-from django.conf import settings
-from django.core.validators import MinValueValidator
+from colorfield.fields import ColorField
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
+
 from users.models import User
+
+from .constants import IngredientField, RecipeField, TagField
+
+
+class ShoppingFavorite(models.Model):
+    """Абстрактный класс для Избанного и Покупок."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+    )
+    recipe = models.ForeignKey(
+        'Recipe',
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+
+    class Meta:
+        abstract = True
 
 
 class Tag(models.Model):
@@ -10,12 +31,12 @@ class Tag(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.MAX_LENGTH_NAME,
+        max_length=TagField.TAG_NAME_LENGTH,
         unique=True,
     )
-    color = models.CharField(
+    color = ColorField(
         verbose_name='Цвет',
-        max_length=settings.MAX_COLOR_LENGTH,
+        max_length=TagField.TAG_COLOR_LENGTH,
         unique=True,
         db_index=False,
     )
@@ -38,16 +59,22 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.MAX_LENGTH_NAME,
+        max_length=IngredientField.INGREDIENT_NAME_LENGTH,
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=settings.MAX_LENGTH_NAME,
+        max_length=IngredientField.INGREDIENT_UNIT_LENGTH,
     )
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_name_ingredient_measurement_unit'
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -58,7 +85,7 @@ class Recipe(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.MAX_LENGTH_NAME,
+        max_length=RecipeField.RECIPE_NAME_LENGTH,
     )
     image = models.ImageField(
         verbose_name='Картинка',
@@ -68,11 +95,16 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
-        validators=(
+        validators=[
             MinValueValidator(
-                settings.MIN_COOK_TIME,
-                message='Минимальное время приготовления - 1 минута!'),
-        ),
+                RecipeField.RECIPE_COOK_TIME_MIN,
+                message=f"""Минимальное время приготовления -
+                 {RecipeField.RECIPE_COOK_TIME_MIN} минута!"""),
+            MaxValueValidator(
+                RecipeField.RECIPE_COOK_TIME_MAX,
+                message='Максимальное значение должно быть не более '
+                        f'{RecipeField.RECIPE_COOK_TIME_MAX} минут'),
+        ]
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -100,25 +132,13 @@ class Recipe(models.Model):
         return self.name
 
 
-class Favorite(models.Model):
+class Favorite(ShoppingFavorite):
     """Модель избранных рецептов."""
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Пользователь',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='Рецепт',
-    )
 
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'избранные'
+        default_related_name = 'favorites'
         constraints = (
             UniqueConstraint(
                 fields=('user', 'recipe',), name='unique_favorite'),
@@ -128,25 +148,13 @@ class Favorite(models.Model):
         return f'Рецепт "{self.recipe}" добавлен в Избранное'
 
 
-class ShoppingCart(models.Model):
+class ShoppingCart(ShoppingFavorite):
     """Модель корзины покупок."""
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Пользователь',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Рецепт',
-    )
 
     class Meta:
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'корзина покупок'
+        default_related_name = 'shopping_cart'
         constraints = (
             UniqueConstraint(
                 fields=('user', 'recipe'), name='unique_shopping_cart'),
@@ -174,8 +182,9 @@ class RecipeIngredient(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=(MinValueValidator(
-            settings.MIN_NUM_INGR,
-            message='Должен быть минимум 1 ингредиент!'),)
+            RecipeField.RECIPE_INGREDIENT_MIN,
+            message=f"""Должен быть минимум
+             {RecipeField.RECIPE_INGREDIENT_MIN} ингредиент!"""),)
     )
 
     class Meta:
