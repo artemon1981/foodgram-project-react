@@ -1,3 +1,3 @@
-class FieldConstants:
-    USER_EMAIL_LENGTH = 254
-    USER_NAME_LENGTH = 150
+class UsersConstants:
+    EMAIL_LENGTH_MAX = 254
+    NAME_LENGTH_MAX = 150

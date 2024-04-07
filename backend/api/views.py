@@ -16,8 +16,9 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeGetSerializer, RecipeSerializer,
                              ShoppingCartDownloadSerializer,
-                             ShoppingCartSerializer, SubscriptionSerializer,
-                             TagSerializer)
+                             ShoppingCartSerializer,
+                             SubscriptionCreateSerializer,
+                             SubscriptionSerializer, TagSerializer)
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Subscription
@@ -140,30 +141,28 @@ class UserViewSet(UserViewSet):
                                        IsAuthorOrReadOnly,)
         return super().get_permissions()
 
-    @action(detail=True, methods=('post',),
-            permission_classes=(permissions.IsAuthenticated,))
-    def subscribe(self, request, **kwargs):
-        return self.handle_subscription(request, create=True)
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def subscribe(self, request, id):
+        get_object_or_404(User, id=id)
+        serializer = SubscriptionCreateSerializer(
+            data={'user': self.request.user.id, 'following': id},
+            context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, **kwargs):
-        return self.handle_subscription(request, create=False)
-
-    def handle_subscription(self, request, create=True):
-        user = self.request.user
-        following = get_object_or_404(User,
-                                      id=self.kwargs.get('id'))
-        serializer = SubscriptionSerializer(following,
-                                            data=request.data,
-                                            context={'request': request})
-        serializer.is_valid(raise_exception=True)
-
-        if create:
-            Subscription.objects.create(user=user, following=following)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        subscription = Subscription.objects.filter(user=user,
-                                                   following=following)
-        subscription.delete()
+        get_object_or_404(
+            Subscription,
+            user=self.request.user,
+            following=self.kwargs.get('id')
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,))

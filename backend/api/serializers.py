@@ -8,10 +8,10 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from api.validators import validate_username
-from recipes.constants import RecipeField
+from recipes.constants import RecipeConstants
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
-from users.constants import FieldConstants
+from users.constants import UsersConstants
 from users.models import Subscription
 
 User = get_user_model()
@@ -88,21 +88,6 @@ class SubscriptionSerializer(UsersSerializer):
         read_only_fields = ('email', 'username',
                             'first_name', 'last_name')
 
-    def validate(self, data):
-        following = self.instance
-        user = self.context.get('request').user
-        subscription = Subscription.objects.filter(
-            following=following, user=user
-        )
-        if self.context.get('request').method == 'POST':
-            if subscription.exists():
-                raise serializers.ValidationError(
-                    'Вы уже подписаны на этого пользователя!')
-            if user == following:
-                raise serializers.ValidationError(
-                    'Вы не можете подписаться на самого себя!')
-        return data
-
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -116,11 +101,40 @@ class SubscriptionSerializer(UsersSerializer):
         return serializer.data
 
 
+class SubscriptionCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор создания подписки."""
+
+    class Meta:
+        model = Subscription
+        fields = (
+            'user',
+            'following'
+        )
+
+    def validate(self, data):
+        user = data['user']
+        following = data['following']
+        if user == following:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на самого себя!')
+
+        if user.follower.filter(following=following).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя!')
+        return data
+
+    def to_representation(self, instance):
+        return SubscriptionSerializer(
+            instance.following,
+            context=self.context
+        ).data
+
+
 class UserRegistrationSerializer(UserCreateSerializer):
     """Сериализатор регистрации пользователей."""
 
     username = serializers.CharField(
-        max_length=FieldConstants.USER_NAME_LENGTH,
+        max_length=UsersConstants.NAME_LENGTH_MAX,
         validators=[validate_username])
 
     class Meta:
@@ -140,15 +154,15 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount',)
 
     def validate_amount(self, amount_value):
-        if amount_value < RecipeField.RECIPE_INGREDIENT_MIN:
+        if amount_value < RecipeConstants.INGREDIENT_AMOUNT_MIN:
             raise serializers.ValidationError(
                 f"""Количество ингредиентов не может быть меньше
-                 {RecipeField.RECIPE_INGREDIENT_MIN}!"""
+                 {RecipeConstants.INGREDIENT_AMOUNT_MIN}!"""
             )
-        if amount_value > RecipeField.RECIPE_INGREDIENT_MAX:
+        if amount_value > RecipeConstants.INGREDIENT_AMOUNT_MAX:
             raise serializers.ValidationError(
                 f"""Количество ингредиентов не может быть больше
-                 {RecipeField.RECIPE_INGREDIENT_MAX}!"""
+                 {RecipeConstants.INGREDIENT_AMOUNT_MAX}!"""
             )
         return amount_value
 

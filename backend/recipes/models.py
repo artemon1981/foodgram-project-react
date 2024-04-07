@@ -5,7 +5,7 @@ from django.db.models import UniqueConstraint
 
 from users.models import User
 
-from .constants import IngredientField, RecipeField, TagField
+from .constants import IngredientConstants, RecipeConstants, TagConstants
 
 
 class ShoppingFavorite(models.Model):
@@ -31,12 +31,12 @@ class Tag(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=TagField.TAG_NAME_LENGTH,
+        max_length=TagConstants.NAME_LENGTH_MAX,
         unique=True,
     )
     color = ColorField(
         verbose_name='Цвет',
-        max_length=TagField.TAG_COLOR_LENGTH,
+        max_length=TagConstants.COLOR_LENGTH_MAX,
         unique=True,
         db_index=False,
     )
@@ -59,11 +59,11 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=IngredientField.INGREDIENT_NAME_LENGTH,
+        max_length=IngredientConstants.NAME_LENGTH_MAX,
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=IngredientField.INGREDIENT_UNIT_LENGTH,
+        max_length=IngredientConstants.UNIT_LENGTH_MAX,
     )
 
     class Meta:
@@ -85,7 +85,7 @@ class Recipe(models.Model):
 
     name = models.CharField(
         verbose_name='Название',
-        max_length=RecipeField.RECIPE_NAME_LENGTH,
+        max_length=RecipeConstants.NAME_LENGTH_MAX,
     )
     image = models.ImageField(
         verbose_name='Картинка',
@@ -97,13 +97,13 @@ class Recipe(models.Model):
         verbose_name='Время приготовления',
         validators=[
             MinValueValidator(
-                RecipeField.RECIPE_COOK_TIME_MIN,
+                RecipeConstants.COOK_TIME_MIN,
                 message=f"""Минимальное время приготовления -
-                 {RecipeField.RECIPE_COOK_TIME_MIN} минута!"""),
+                 {RecipeConstants.COOK_TIME_MIN} минута!"""),
             MaxValueValidator(
-                RecipeField.RECIPE_COOK_TIME_MAX,
+                RecipeConstants.COOK_TIME_MAX,
                 message='Максимальное значение должно быть не более '
-                        f'{RecipeField.RECIPE_COOK_TIME_MAX} минут'),
+                        f'{RecipeConstants.COOK_TIME_MAX} минут'),
         ]
     )
     ingredients = models.ManyToManyField(
@@ -181,10 +181,15 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        validators=(MinValueValidator(
-            RecipeField.RECIPE_INGREDIENT_MIN,
+        validators=[MinValueValidator(
+            RecipeConstants.INGREDIENT_AMOUNT_MIN,
             message=f"""Должен быть минимум
-             {RecipeField.RECIPE_INGREDIENT_MIN} ингредиент!"""),)
+                        {RecipeConstants.INGREDIENT_AMOUNT_MIN} ингредиент"""),
+            MaxValueValidator(
+                RecipeConstants.INGREDIENT_AMOUNT_MAX,
+                message=f"""Максимальное значение должно быть не более
+                        {RecipeConstants.INGREDIENT_AMOUNT_MAX}!"""),
+        ]
     )
 
     class Meta:

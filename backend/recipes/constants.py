@@ -1,16 +1,16 @@
-class IngredientField:
-    INGREDIENT_NAME_LENGTH = 200
-    INGREDIENT_UNIT_LENGTH = 200
+class IngredientConstants:
+    NAME_LENGTH_MAX = 200
+    UNIT_LENGTH_MAX = 200
 
 
-class TagField:
-    TAG_COLOR_LENGTH = 7
-    TAG_NAME_LENGTH = 200
+class TagConstants:
+    COLOR_LENGTH_MAX = 7
+    NAME_LENGTH_MAX = 200
 
 
-class RecipeField:
-    RECIPE_INGREDIENT_MIN = 1
-    RECIPE_INGREDIENT_MAX = 10000
-    RECIPE_NAME_LENGTH = 200
-    RECIPE_COOK_TIME_MIN = 1
-    RECIPE_COOK_TIME_MAX = 24 * 60
+class RecipeConstants:
+    INGREDIENT_AMOUNT_MIN = 1
+    INGREDIENT_AMOUNT_MAX = 10000
+    NAME_LENGTH_MAX = 200
+    COOK_TIME_MIN = 1
+    COOK_TIME_MAX = 24 * 60
