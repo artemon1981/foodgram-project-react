@@ -45,7 +45,17 @@
 - React (frontend)
 
 ##  Cсылка на развёрнутое приложение в сети: 
-- #### https://django-training.ru/ 
+- #### https://django-training.ru/
+  Данные суперюзера:
+
+    ```bash
+    pavelostrikov1981@gmail.com
+    ```
+  
+
+    ```bash
+    vkusnoitochka
+    ```
 
 ## Как развернуть: 
  
