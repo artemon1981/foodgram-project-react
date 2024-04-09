@@ -123,8 +123,12 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор',
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True)
 
     class Meta:
+        ordering = ('pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'рецепты'
 
