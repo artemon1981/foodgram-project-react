@@ -128,7 +128,7 @@ class Recipe(models.Model):
         auto_now_add=True)
 
     class Meta:
-        ordering = ('pub_date',)
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'рецепты'
 
